@@ -1,4 +1,3 @@
-```markdown
 # 🚀 ProgramingJAVA
 
 This repository contains exercises, examples, and demos related to Java programming. The goal is to practice syntax, program structure, and core Java concepts. [web:13][web:16][web:20]

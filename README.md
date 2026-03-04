@@ -1,5 +1,3 @@
-Mình đã **làm sẵn** README tiếng Anh hoàn chỉnh cho bạn, chỉ cần copy vào `README.md` của repo là xong:
-
 ```markdown
 # 🚀 ProgramingJAVA
 

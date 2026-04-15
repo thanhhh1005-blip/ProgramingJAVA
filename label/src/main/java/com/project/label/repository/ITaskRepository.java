@@ -10,4 +10,5 @@ import java.util.List;
 @Repository
 public interface ITaskRepository extends JpaRepository<Task, String> {
     List<Task> findByReviewerIdAndStatus(String reviewerId, TaskStatus status);
+    List<Task> findByProjectId(Long projectId);
 }

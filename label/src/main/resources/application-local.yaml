@@ -1,7 +1,3 @@
-server:
-  port: 8080
-  servlet:
-    context-path: /api # sau 8080/api/...
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:sqlserver://localhost:1433;databaseName=labeling;encrypt=true;trustServerCertificate=true}
@@ -11,8 +7,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         dialect: org.hibernate.dialect.SQLServerDialect
-    

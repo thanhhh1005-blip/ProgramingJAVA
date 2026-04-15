@@ -1,6 +1,7 @@
 package com.project.label.entity;
 
 import com.project.label.enums.TaskStatus;
+import com.project.label.project.entity.Project;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -38,6 +39,10 @@ public class Task {
 
     @Column(name = "annotation_data", columnDefinition = "TEXT")
     private String annotationData;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "project_id")
+    private Project project;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

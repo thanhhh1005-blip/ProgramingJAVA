@@ -1,0 +1,20 @@
+# Java / Maven / Gradle build outputs
+**/target/
+**/out/
+**/*.class
+
+# IDE metadata
+**/.idea/
+.vscode/
+
+# Node / frontend artifacts
+**/node_modules/
+
+# Local tool bundles and temp files
+**/.tools/
+**/*.log
+**/*.tmp
+
+# Local environment files
+**/.env
+**/.env.*

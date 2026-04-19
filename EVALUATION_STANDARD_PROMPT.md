@@ -27,10 +27,30 @@ Assess whether the candidate branch improves system efficiency for the labeling 
 - Code maintainability
 - Scalability readiness
 
+## Mandatory Numeric Rubric
+- Give each criterion a numeric score from 0 to 10.
+- Use one decimal place if needed.
+- Final score formula:
+
+`Final Score = (Architectural clarity + Runtime efficiency + Code maintainability + Scalability readiness) / 4`
+
+- Round final score to 1 decimal place.
+
+## Current Reference Score (2026-04-20)
+- Architectural clarity: 5/10
+- Runtime efficiency: 6/10
+- Code maintainability: 4/10
+- Scalability readiness: 3/10
+- Final Score: 4.5/10
+
 ## Output Format
 - Key Improvements:
 - Regressions:
 - Overall Assessment:
+- Architectural clarity: X/10
+- Runtime efficiency: X/10
+- Code maintainability: X/10
+- Scalability readiness: X/10
 - Score: X/10
 
 ## Output Limits

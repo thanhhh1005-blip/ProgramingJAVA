@@ -1,0 +1,15 @@
+/* src/index.css */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body, #root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif; /* Bạn có thể đổi font tùy ý */
+  background-color: #f1f5f9; /* Màu nền xám nhạt */
+}

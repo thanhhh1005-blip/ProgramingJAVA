@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_BASE_URL}/api` : 'http://localhost:8080/api';
+import { API_BASE_URL, getErrorMessage, getToken, parseApiResponse, unwrapResult } from '../lib/api';
 
 const ProjectDetailPage = () => {
   const { projectId } = useParams(); 
@@ -13,27 +12,25 @@ const ProjectDetailPage = () => {
   // 🌟 1. State này dùng để chứa TOÀN BỘ ảnh của dự án lấy từ Database
   const [dataset, setDataset] = useState([]); 
 
-  const getToken = () => localStorage.getItem('token');
-
   // 🌟 2. useEffect này sẽ tự động chạy hàm fetchDataset() ngay khi bạn vừa vào trang này
-  useEffect(() => {
-    fetchDataset();
-  }, [projectId]);
-
   // Hàm gọi API lấy danh sách ảnh (cái API chuẩn mà bạn vừa gửi đó)
-  const fetchDataset = async () => {
+  const fetchDataset = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/datasets/project/${projectId}`, {
         headers: { 'Authorization': `Bearer ${getToken()}` }
       });
-      const data = await response.json();
-      if (data.result) {
-        setDataset(data.result); // Đổ dữ liệu lấy được vào state dataset
-      }
+      const payload = await parseApiResponse(response);
+      const result = unwrapResult(payload);
+      setDataset(Array.isArray(result) ? result : []); // Đổ dữ liệu lấy được vào state dataset
     } catch (error) {
       console.error("Lỗi tải danh sách ảnh:", error);
+      setDataset([]);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    fetchDataset();
+  }, [fetchDataset]);
 
   const handleFileChange = (e) => {
     setSelectedFiles(e.target.files);
@@ -62,16 +59,17 @@ const ProjectDetailPage = () => {
         body: formData
       });
 
-      const data = await response.json();
-      
-      if (data.result) {
-        alert("Upload thành công lên Cloudinary!");
+      const payload = await parseApiResponse(response);
+      const result = unwrapResult(payload);
+
+      if (response.ok && Array.isArray(result)) {
+        alert("Upload thành công!");
         setSelectedFiles([]); // Xóa rỗng ô chọn file
         
         // 🌟 3. QUAN TRỌNG: Gọi lại hàm này để load lại lưới ảnh mới nhất sau khi upload
         fetchDataset(); 
       } else {
-        alert("Lỗi: " + data.message);
+        alert("Lỗi: " + getErrorMessage(payload, "Upload thất bại"));
       }
     } catch (error) {
       console.error("Lỗi mạng:", error);
@@ -85,7 +83,8 @@ const ProjectDetailPage = () => {
   const renderStatus = (status) => {
     if (status === 'UNLABELED') return <span style={{ color: '#ef4444', fontSize: '13px', fontWeight: 'bold' }}>🔴 Chưa gán</span>;
     if (status === 'LABELED') return <span style={{ color: '#10b981', fontSize: '13px', fontWeight: 'bold' }}>🟢 Đã gán</span>;
-    return <span style={{ color: '#3b82f6', fontSize: '13px', fontWeight: 'bold' }}>🔵 Đã duyệt</span>;
+    if (status === 'REVIEWED') return <span style={{ color: '#3b82f6', fontSize: '13px', fontWeight: 'bold' }}>🔵 Đã duyệt</span>;
+    return <span style={{ color: '#64748b', fontSize: '13px', fontWeight: 'bold' }}>⚪ Không xác định</span>;
   }
 
   return (
@@ -103,6 +102,15 @@ const ProjectDetailPage = () => {
       <p style={{ color: '#64748b', marginTop: '10px' }}>
         <strong>Mã dự án (ID):</strong> {projectId}
       </p>
+
+      <div style={{ marginTop: '10px' }}>
+        <button
+          onClick={() => navigate(`/admin/tasks?projectId=${projectId}`)}
+          style={{ padding: '8px 14px', backgroundColor: '#0f766e', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+        >
+          Mở màn hình gán nhãn cho dự án này
+        </button>
+      </div>
 
       {/* --- PHẦN 1: VÙNG UPLOAD ẢNH --- */}
       <div style={{ marginTop: '20px', padding: '20px', border: '2px dashed #cbd5e1', borderRadius: '8px', textAlign: 'center', backgroundColor: '#f8fafc' }}>

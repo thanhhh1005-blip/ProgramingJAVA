@@ -12,7 +12,7 @@ function parseJwt(token) {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
     return JSON.parse(jsonPayload);
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -20,18 +20,25 @@ function parseJwt(token) {
 function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [userInfo, setUserInfo] = useState({ username: "User", role: "" });
+  const [userInfo] = useState(() => {
+    const token = localStorage.getItem("token");
+    const decoded = token ? parseJwt(token) : null;
+
+    if (!decoded) {
+      return { username: "User", role: "" };
+    }
+
+    return {
+      username: decoded.sub || "User",
+      role: decoded.scope || decoded.role || "",
+    };
+  });
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       navigate("/login");
       return;
-    }
-    const decoded = parseJwt(token);
-    if (decoded) {
-      const userRole = decoded.scope || decoded.role || "";
-      setUserInfo({ username: decoded.sub || "User", role: userRole });
     }
   }, [navigate]);
 

@@ -19,6 +19,7 @@ function App() {
         <Route path="projects" element={<ProjectListPage />} />
         <Route path="projects/create" element={<CreateProjectPage />} />
         <Route path="projects/:projectId" element={<ProjectDetailPage />} />
+        <Route path="tasks" element={<AnnotationPage />} />
 </Route>
 
 <Route path="/tasks" element={<AnnotationPage />} />

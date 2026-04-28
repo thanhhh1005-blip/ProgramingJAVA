@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_BASE_URL}/api` : 'http://localhost:8080/api';
+import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL, getToken, parseApiResponse, unwrapResult } from '../lib/api';
 
 const ProjectListPage = () => {
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-
-  const getToken = () => localStorage.getItem('token');
 
   useEffect(() => {
     fetchProjects();
@@ -19,12 +16,12 @@ const ProjectListPage = () => {
       const response = await fetch(`${API_BASE_URL}/projects`, {
         headers: { 'Authorization': `Bearer ${getToken()}` }
       });
-      const data = await response.json();
-      if (data.result) {
-        setProjects(data.result);
-      }
+      const payload = await parseApiResponse(response);
+      const result = unwrapResult(payload);
+      setProjects(Array.isArray(result) ? result : []);
     } catch (error) {
       console.error("Lỗi lấy danh sách dự án:", error);
+      setProjects([]);
     } finally {
       setIsLoading(false);
     }
@@ -73,8 +70,8 @@ const ProjectListPage = () => {
                 <tr key={project.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
                   <td style={{ padding: '12px', fontWeight: 'bold' }}>{project.name}</td>
                   <td style={{ padding: '12px' }}>{getStatusBadge(project.status)}</td>
-                  <td style={{ padding: '12px' }}>{project.labelCount} nhãn</td>
-                  <td style={{ padding: '12px' }}>{project.dataItemCount} ảnh</td>
+                  <td style={{ padding: '12px' }}>{project.labeledItems ?? 0} đã gán</td>
+                  <td style={{ padding: '12px' }}>{project.totalItems ?? 0} ảnh</td>
                   <td style={{ padding: '12px' }}>
                     {/* ĐÂY LÀ CHỖ CHÚNG TA CHUYỂN HƯỚNG MANG THEO ID */}
                     <button 

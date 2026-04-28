@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { getErrorMessage, parseApiResponse, unwrapResult } from "../lib/api";
 import "./LoginPage.css";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
@@ -25,17 +26,17 @@ function LoginPage() {
         body: JSON.stringify({ username, password }),
       });
 
-      const payload = await response.json().catch(() => null);
+      const payload = await parseApiResponse(response);
+      const result = unwrapResult(payload);
+      const token = result?.token || payload?.token;
 
-      if (!response.ok || !payload?.result?.token) {
-        setError(
-          payload?.message || "Tên đăng nhập hoặc mật khẩu không chính xác."
-        );
+      if (!response.ok || !token) {
+        setError(getErrorMessage(payload, "Tên đăng nhập hoặc mật khẩu không chính xác."));
         return;
       }
 
       // 3. ĐÂY LÀ ĐIỂM QUAN TRỌNG: Lưu token và chuyển trang thẳng vào Admin
-      localStorage.setItem("token", payload.result.token);
+      localStorage.setItem("token", token);
       navigate("/admin/users"); 
       
     } catch (err) {

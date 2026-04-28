@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_BASE_URL}/api` : 'http://localhost:8080/api';
+import { API_BASE_URL, getErrorMessage, getToken, parseApiResponse, unwrapResult } from '../lib/api';
 
 const CreateProjectPage = () => {
   const navigate = useNavigate();
@@ -11,8 +10,6 @@ const CreateProjectPage = () => {
   // State quản lý mảng các nhãn (Mặc định có sẵn 1 nhãn rỗng)
   const [labels, setLabels] = useState([{ name: '', color: '#ff0000' }]);
   const [isLoading, setIsLoading] = useState(false);
-
-  const getToken = () => localStorage.getItem('token');
 
   // Thêm một dòng nhãn mới
   const addLabelRow = () => {
@@ -55,13 +52,23 @@ const CreateProjectPage = () => {
         body: JSON.stringify(payload)
       });
 
-      const data = await response.json();
-      if (data.result) {
+      const apiPayload = await parseApiResponse(response);
+      const result = unwrapResult(apiPayload);
+      if (response.ok && result) {
+        if (result.id != null) {
+          const storedLabels = validLabels.map((label, index) => ({
+            id: index + 1,
+            name: label.name.trim(),
+            color: label.color,
+          }));
+          localStorage.setItem(`label-project-labels:${result.id}`, JSON.stringify(storedLabels));
+        }
+
         alert("Tạo dự án thành công!");
         // Chuyển hướng về trang danh sách dự án
         navigate('/admin/projects'); 
       } else {
-        alert("Lỗi: " + data.message);
+        alert("Lỗi: " + getErrorMessage(apiPayload, "Không thể tạo dự án"));
       }
     } catch (error) {
       console.error("Lỗi:", error);

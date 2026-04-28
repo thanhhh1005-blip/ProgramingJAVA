@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './ManageUsersPage.css';
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ? `${import.meta.env.VITE_API_BASE_URL}/api` : 'http://localhost:8080/api';
+import { API_BASE_URL, getErrorMessage, getToken, parseApiResponse, unwrapResult } from '../lib/api';
 
 const ManageUsersPage = () => {
   const [users, setUsers] = useState([]);
@@ -18,9 +17,6 @@ const ManageUsersPage = () => {
   });
   const [isEditMode, setIsEditMode] = useState(false);
 
-  // Lấy token từ localStorage (hoặc Context tùy cách bạn setup Login)
-  const getToken = () => localStorage.getItem('token');
-
   // Load danh sách users khi component mount
   useEffect(() => {
     fetchUsers();
@@ -36,12 +32,12 @@ const ManageUsersPage = () => {
           'Content-Type': 'application/json'
         }
       });
-      const data = await response.json();
-      if (data.result) {
-        setUsers(data.result);
-      }
+      const payload = await parseApiResponse(response);
+      const result = unwrapResult(payload);
+      setUsers(Array.isArray(result) ? result : []);
     } catch (error) {
       console.error('Lỗi khi lấy danh sách người dùng:', error);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -72,11 +68,11 @@ const ManageUsersPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const url = isEditMode ? `${API_BASE_URL}/users/${formData.id}` : `${API_BASE_URL}/users`;
     const method = isEditMode ? 'PUT' : 'POST';
 
     // Loại bỏ id khỏi payload khi gửi đi
     const { id, ...payload } = formData;
+    const url = isEditMode ? `${API_BASE_URL}/users/${id}` : `${API_BASE_URL}/users`;
     if (isEditMode) delete payload.password; // Tùy logic backend có cho update pass không
 
     try {
@@ -88,16 +84,18 @@ const ManageUsersPage = () => {
         },
         body: JSON.stringify(payload)
       });
-      const data = await response.json();
-      
-      if (data.code === 1000 || data.result) { // Giả sử code thành công là 1000
+      const apiPayload = await parseApiResponse(response);
+      const result = unwrapResult(apiPayload);
+
+      if (response.ok && result) {
         setShowModal(false);
         fetchUsers(); // Tải lại danh sách
       } else {
-        alert(data.message || 'Có lỗi xảy ra!');
+        alert(getErrorMessage(apiPayload, 'Có lỗi xảy ra!'));
       }
     } catch (error) {
       console.error('Lỗi khi lưu người dùng:', error);
+      alert('Không thể lưu người dùng.');
     }
   };
 
@@ -111,9 +109,11 @@ const ManageUsersPage = () => {
           'Authorization': `Bearer ${getToken()}`
         }
       });
-      const data = await response.json();
-      if (data.result) {
+      await parseApiResponse(response);
+      if (response.ok) {
         fetchUsers();
+      } else {
+        alert('Xóa người dùng thất bại.');
       }
     } catch (error) {
       console.error('Lỗi khi xóa người dùng:', error);
